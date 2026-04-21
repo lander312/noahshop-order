@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>養生堅果鋪 - 內部管理系統</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        /* 隱藏捲軸 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none; 
+            scrollbar-width: none; 
+        }
+        /* 隱藏預設 number input 的箭頭 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        body {
+            background-color: #f1f5f9; /* slate-100 */
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo, useEffect } = React;
+
+        // 產品資料庫 (內部版：圖片全數更新，數據同步最新，優化內部打單流程)
+        const RAW_PRODUCTS = [
+          { 
+            id: 1, name: '杏仁果', weight: 240, price: 250, cost: 200, category: '堅果',
+            image: 'https://i.postimg.cc/507KkDfX/message_Image_1769681046821.jpg'
+          },
+          { 
+            id: 2, name: '腰果', weight: 220, price: 250, cost: 200, category: '堅果',
+            image: 'https://i.postimg.cc/76stQjqG/message_Image_1769681056140.jpg'
+          },
+          { 
+            id: 3, name: '核桃', weight: 220, price: 350, cost: 200, category: '堅果',
+            image: 'https://i.postimg.cc/Qt4YnvjB/message_Image_1769681074884.jpg'
+          },
+          { 
+            id: 4, name: '綜合堅果(小)', weight: 220, price: 250, cost: 200, note: '杏仁.腰果.核桃', category: '綜合',
+            image: 'https://i.postimg.cc/76stQjqN/message_Image_1769681094101.jpg',
+            customizable: true
+          },
+          { 
+            id: 5, name: '綜合堅果(大)', weight: 340, price: 350, cost: 300, note: '杏仁.腰果.核桃', category: '綜合',
+            image: 'https://i.postimg.cc/ydQpr27j/message_Image_1769681104182.jpg',
+            customizable: true
+          },
+          { 
+            id: 6, name: '胡桃', weight: 220, price: 350, cost: 300, category: '堅果',
+            image: 'https://i.postimg.cc/MTP3rgzy/message_Image_1769681084096.jpg'
+          },
+          { 
+            id: 7, name: '南瓜子', weight: 255, price: 350, cost: 150, category: '種子',
+            image: 'https://i.postimg.cc/9M8gNsc7/message_Image_1769681065108.jpg'
+          },
+          { 
+            id: 8, name: '松子', weight: 150, price: 500, cost: 400, category: '堅果',
+            image: 'https://i.postimg.cc/507KkDf3/message_Image_1769681112114.jpg'
+          },
+          { 
+            id: 9, name: '梅子', weight: 150, price: 200, cost: 100, category: '果乾', // 售價改 200
+            image: 'https://i.postimg.cc/MHgPzRch/message_Image_1769681240905.jpg'
+          },
+          { 
+            id: 10, name: '無花果', weight: 300, price: 350, cost: 230, category: '果乾', 
+            image: 'https://i.postimg.cc/fyVq45b1/message_Image_1769681204670.jpg'
+          },
+          { 
+            id: 11, name: '開心果', weight: 600, price: 580, cost: 540, category: '堅果',
+            image: 'https://i.postimg.cc/XqtHnFZ1/message_Image_1769681214939.jpg'
+          },
+          { 
+            id: 12, name: '中東椰棗', weight: 300, price: 300, cost: 200, category: '果乾',
+            image: 'https://i.postimg.cc/cCvkqTJm/message_Image_1769681154962.jpg'
+          },
+          { 
+            id: 13, name: '野生藍莓乾', weight: 240, price: 450, cost: 400, category: '果乾',
+            image: 'https://i.postimg.cc/PJCVGKqb/message_Image_1769681136720.jpg'
+          },
+          { 
+            id: 14, name: '蔓越莓乾', weight: 265, price: 450, cost: 200, category: '果乾',
+            image: 'https://i.postimg.cc/Bbj7WNvH/message_Image_1769681129012.jpg'
+          },
+          { 
+            id: 15, name: '黑葡萄乾', weight: 300, price: 280, cost: 100, category: '果乾',
+            image: 'https://i.postimg.cc/Gt4g0zpM/message_Image_1769681175609.jpg'
+          },
+          { 
+            id: 16, name: '青葡萄乾', weight: 260, price: 250, cost: 100, category: '果乾',
+            image: 'https://i.postimg.cc/d3hNMn0y/message_Image_1769681120719.jpg'
+          },
+          { 
+            id: 17, name: '夏威夷豆', weight: 225, price: 350, cost: 300, category: '堅果',
+            image: 'https://i.postimg.cc/0jzXgZNZ/message_Image_1769681166680.jpg'
+          },
+          { 
+            id: 18, name: '紅麴納豆', weight: 330, price: 300, cost: 100, category: '零嘴',
+            image: 'https://i.postimg.cc/d3gHJdkK/message_Image_1769681224115.jpg'
+          },
+          { 
+            id: 19, name: '黑豆', weight: 300, price: 250, cost: 100, category: '豆類',
+            image: 'https://i.postimg.cc/zv4tqWLM/message_Image_1769681232675.jpg'
+          },
+          { 
+            id: 20, name: '五行豆', weight: 300, price: 250, cost: 100, note: '黃豆/黑豆/南瓜子/枸杞/葡萄乾', category: '綜合',
+            image: 'https://i.postimg.cc/KjCqmLkh/message_Image_1769681251833.jpg'
+          },
+          { 
+            id: 21, name: '甘草橄欖', weight: 300, price: 250, cost: 100, category: '果乾', // 售價改 250
+            image: 'https://i.postimg.cc/6q8bszQD/message_Image_1769681196159.jpg'
+          },
+          { 
+            id: 22, name: '乳酪絲', weight: 150, price: 350, cost: 300, category: '零嘴',
+            image: 'https://i.postimg.cc/Xqr1MxvP/message_Image_1769681185959.jpg'
+          },
+          { 
+            id: 23, name: '黑芝麻粉', weight: 300, price: 200, cost: 100, category: '粉類',
+            image: 'https://i.postimg.cc/3NkfM9wZ/message_Image_1769681145513.jpg'
+          },
+        ];
+
+        const INITIAL_ANNOUNCEMENT = `【無花果價格微調】
+因產地成本變動，無花果自 2026/01/27 起每 300g 調漲為 350 元。
+後續若產地成本回穩或下降，我們也會不定期檢視，並視情況回調價格，謝謝理解。`;
+
+        const App = () => {
+          const [cart, setCart] = useState({});
+          const [searchTerm, setSearchTerm] = useState('');
+          const [notification, setNotification] = useState(null);
+          const [filterCategory, setFilterCategory] = useState('全部');
+          const [isScrolled, setIsScrolled] = useState(false);
+          const [includeProfit, setIncludeProfit] = useState(true); 
+          const [includeAnnouncement, setIncludeAnnouncement] = useState(true); 
+          const [announcementText, setAnnouncementText] = useState(INITIAL_ANNOUNCEMENT); 
+          const [isEditingAnnouncement, setIsEditingAnnouncement] = useState(false); 
+          const [showImportModal, setShowImportModal] = useState(false); 
+          const [importText, setImportText] = useState(''); 
+          
+          const [showMixModal, setShowMixModal] = useState(false);
+          const [mixBaseProduct, setMixBaseProduct] = useState(null);
+          const [selectedIngredients, setSelectedIngredients] = useState([]);
+          const [customVariants, setCustomVariants] = useState([]);
+          
+          const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+          const MIX_INGREDIENTS = ['杏仁果', '腰果', '核桃', '胡桃', '南瓜子', '松子', '開心果', '夏威夷豆', '黑豆', '黃豆'];
+
+          const categories = ['全部', ...new Set(RAW_PRODUCTS.map(p => p.category))];
+
+          // 初始化 Lucide 圖示
+          useEffect(() => {
+            if (window.lucide) {
+              window.lucide.createIcons();
+            }
+          });
+
+          useEffect(() => {
+            const handleScroll = () => {
+              setIsScrolled(window.scrollY > 280);
+            };
+            window.addEventListener('scroll', handleScroll);
+            return () => window.removeEventListener('scroll', handleScroll);
+          }, []);
+
+          const updateQuantity = (id, delta) => {
+            setCart(prev => {
+              const currentQty = prev[id] || 0;
+              const newQty = Math.max(0, currentQty + delta);
+              
+              if (newQty === 0) {
+                const { [id]: _, ...rest } = prev;
+                return rest;
+              }
+              return { ...prev, [id]: newQty };
+            });
+          };
+
+          const handleInputChange = (id, value) => {
+            const val = value === '' ? 0 : parseInt(value, 10);
+            if (isNaN(val) || val < 0) return; 
+            
+            setCart(prev => {
+              if (val === 0) {
+                const { [id]: _, ...rest } = prev;
+                return rest;
+              }
+              return { ...prev, [id]: val };
+            });
+          };
+
+          const clearCart = () => {
+            setShowClearConfirm(true);
+          };
+
+          const confirmClearCart = () => {
+            setCart({});
+            setShowClearConfirm(false);
+            showNotification('已清空所有數量');
+          };
+
+          const handleImport = () => {
+            if (!importText.trim()) return;
+            
+            const parsedCart = {};
+            const newVariants = [];
+            let matchedCount = 0;
+            const lines = importText.split('\n');
+            
+            let lastMatchedProduct = null;
+            let lastMatchedQty = 0;
+
+            lines.forEach(line => {
+              const trimLine = line.trim();
+              if (!trimLine) return;
+
+              if (trimLine.startsWith('●')) {
+                if (lastMatchedProduct) {
+                  let noteText = trimLine.replace(/^●\s*/, '');
+                  let isCustom = false;
+                  
+                  if (noteText.startsWith('自選: ')) {
+                      noteText = noteText.replace('自選: ', '');
+                      isCustom = true;
+                  } else if (noteText.startsWith('自選:')) {
+                      noteText = noteText.replace('自選:', '');
+                      isCustom = true;
+                  }
+                  
+                  if (isCustom) {
+                      if (parsedCart[lastMatchedProduct.id]) {
+                          parsedCart[lastMatchedProduct.id] -= lastMatchedQty;
+                          if (parsedCart[lastMatchedProduct.id] <= 0) delete parsedCart[lastMatchedProduct.id];
+                          matchedCount--; 
+                      }
+                      const customKey = `${lastMatchedProduct.id}|${noteText}`;
+                      parsedCart[customKey] = (parsedCart[customKey] || 0) + lastMatchedQty;
+                      newVariants.push({ key: customKey, baseId: lastMatchedProduct.id, note: noteText });
+                      matchedCount++;
+                  }
+                  lastMatchedProduct = null; 
+                }
+                return; 
+              }
+
+              const match = trimLine.match(/^(.+?)(?:\s*\((?:自選|備註):\s*(.+?)\))?\s+x\s+(\d+)/);
+              if (match) {
+                const name = match[1].trim();
+                const inlineNote = match[2] ? match[2].trim() : null;
+                const qty = parseInt(match[3], 10);
+                
+                const product = RAW_PRODUCTS.find(p => p.name === name);
+                if (product && qty > 0) {
+                  if (inlineNote) {
+                    const key = `${product.id}|${inlineNote}`;
+                    parsedCart[key] = (parsedCart[key] || 0) + qty;
+                    newVariants.push({ key, baseId: product.id, note: inlineNote });
+                    matchedCount++;
+                    lastMatchedProduct = null; 
+                  } else {
+                    parsedCart[product.id] = (parsedCart[product.id] || 0) + qty;
+                    matchedCount++;
+                    lastMatchedProduct = product;
+                    lastMatchedQty = qty;
+                  }
+                } else {
+                  lastMatchedProduct = null;
+                }
+              } else {
+                lastMatchedProduct = null;
+              }
+            });
+
+            if (matchedCount > 0) {
+              setCart(parsedCart);
+              if (newVariants.length > 0) {
+                setCustomVariants(prev => {
+                  const merged = [...prev];
+                  newVariants.forEach(nv => {
+                    if (!merged.find(m => m.key === nv.key)) merged.push(nv);
+                  });
+                  return merged;
+                });
+              }
+              setShowImportModal(false);
+              setImportText('');
+              showNotification(`成功匯入 ${matchedCount} 項商品數量！`);
+            } else {
+              showNotification('解析失敗！請確保貼上的格式正確', 'error');
+            }
+          };
+
+          const cartSummary = useMemo(() => {
+            let totalQty = 0;
+            let totalPrice = 0; 
+            let totalWeight = 0;
+            let totalCost = 0;  
+            const items = [];
+
+            Object.entries(cart).forEach(([key, qty]) => {
+              let baseId, customNote;
+              if (String(key).includes('|')) {
+                [baseId, customNote] = String(key).split('|');
+                baseId = parseInt(baseId, 10);
+              } else {
+                baseId = parseInt(key, 10);
+                customNote = null;
+              }
+
+              const product = RAW_PRODUCTS.find(p => p.id === baseId);
+              if (product) {
+                const displayNote = customNote || product.note;
+                const displayName = customNote ? `${product.name} (自選: ${customNote})` : product.name;
+
+                totalQty += qty;
+                totalPrice += product.price * qty;
+                totalWeight += product.weight * qty;
+                totalCost += product.cost * qty;
+                items.push({ 
+                  ...product, 
+                  qty,
+                  cartKey: key,
+                  displayName: displayName,
+                  displayNote: displayNote,
+                  subtotal: product.price * qty,
+                  subProfit: (product.price - product.cost) * qty
+                });
+              }
+            });
+
+            let discountRate = 1;
+            let discountName = '';
+            if (totalQty >= 300) {
+              discountRate = 0.8;
+              discountName = '8折';
+            } else if (totalQty >= 150) {
+              discountRate = 0.85;
+              discountName = '8.5折';
+            } else if (totalQty >= 50) {
+              discountRate = 0.9;
+              discountName = '9折';
+            }
+
+            const discountedCost = Math.round(totalCost * discountRate);
+            const originalProfit = totalPrice - totalCost; 
+            const discountedProfit = totalPrice - discountedCost; 
+
+            return { 
+              totalQty, 
+              totalWeight, 
+              totalPrice, 
+              totalCost, 
+              discountedCost, 
+              originalProfit, 
+              discountedProfit, 
+              discountRate,
+              discountName,
+              items 
+            };
+          }, [cart]);
+
+          const filteredProducts = RAW_PRODUCTS.filter(product => {
+            const matchesSearch = product.name.includes(searchTerm) || (product.note && product.note.includes(searchTerm));
+            const matchesCategory = filterCategory === '全部' || product.category === filterCategory;
+            return matchesSearch && matchesCategory;
+          });
+
+          const rowsToRender = [];
+          filteredProducts.forEach(product => {
+            rowsToRender.push({ isBase: true, product, itemKey: product.id, note: product.note });
+            
+            if (product.customizable) {
+              const variants = customVariants.filter(v => v.baseId === product.id);
+              variants.forEach(v => {
+                rowsToRender.push({ isBase: false, product, itemKey: v.key, note: v.note });
+              });
+            }
+          });
+
+          const handleAddCustomMix = () => {
+            if (selectedIngredients.length === 0) {
+              showNotification("請至少選擇一種配料！", "error");
+              return;
+            }
+            const newNote = selectedIngredients.join('.');
+            const key = `${mixBaseProduct.id}|${newNote}`;
+
+            setCustomVariants(prev => {
+              if (!prev.find(v => v.key === key)) {
+                return [...prev, { key, baseId: mixBaseProduct.id, note: newNote }];
+              }
+              return prev;
+            });
+
+            setCart(prev => ({ ...prev, [key]: (prev[key] || 0) + 1 }));
+            
+            setShowMixModal(false);
+            setSelectedIngredients([]);
+            setMixBaseProduct(null);
+          };
+
+          const handleRemoveCustomVariant = (keyToRemove) => {
+            setCustomVariants(prev => prev.filter(v => v.key !== keyToRemove));
+            setCart(prev => {
+              const newCart = { ...prev };
+              delete newCart[keyToRemove];
+              return newCart;
+            });
+            showNotification('已移除自訂組合');
+          };
+
+          const copyToClipboard = () => {
+            if (cartSummary.items.length === 0) {
+              showNotification('訂單是空的喔！', 'error');
+              return;
+            }
+
+            const date = new Date().toLocaleDateString('zh-TW');
+            let text = `【養生堅果鋪 - 內部訂單】${date}\n`;
+            text += `------------------\n`;
+            
+            cartSummary.items.forEach(item => {
+              const profitText = includeProfit ? ` (利潤:$${item.subProfit})` : '';
+              
+              text += `${item.name} x ${item.qty}${profitText}\n`;
+              
+              if (item.cartKey.includes('|')) {
+                text += `  ● 自選: ${item.displayNote}\n`;
+              } else if (item.note && item.category === '綜合') {
+                text += `  ● ${item.note}\n`;
+              }
+            });
+            
+            text += `------------------\n`;
+            text += `📦 總包數: ${cartSummary.totalQty} 包\n`;
+            text += `💰 對外實收: $${cartSummary.totalPrice}\n`;
+            
+            if (includeProfit) {
+              if (cartSummary.discountRate < 1) {
+                text += `🛑 總成本: $${cartSummary.discountedCost} (進貨達標 ${cartSummary.discountName}，原為$${cartSummary.totalCost})\n`;
+                text += `📈 實際淨利: $${cartSummary.discountedProfit} (額外多賺$${cartSummary.discountedProfit - cartSummary.originalProfit})\n`;
+              } else {
+                text += `🛑 總成本: $${cartSummary.totalCost}\n`;
+                text += `📈 實際淨利: $${cartSummary.originalProfit}\n`;
+              }
+            }
+            
+            text += `\n`;
+            
+            if (includeAnnouncement && announcementText.trim() !== '') {
+              text += announcementText + `\n\n`;
+            }
+            
+            if (includeProfit) {
+              text += `(本資訊僅供內部管理使用，請勿外流)\n`;
+            }
+            
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+              document.execCommand('copy');
+              showNotification('內部報表已複製！');
+            } catch (err) {
+              showNotification('複製失敗，請手動截圖', 'error');
+            }
+            document.body.removeChild(textArea);
+          };
+
+          const showNotification = (msg, type = 'success') => {
+            setNotification({ msg, type });
+            setTimeout(() => setNotification(null), 3000);
+          };
+
+          return (
+            <div className="min-h-screen bg-slate-100 text-slate-800 font-sans pb-40">
+              
+              {/* Notification */}
+              {notification && (
+                  <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg shadow-lg font-bold text-sm flex items-center gap-2 animate-in slide-in-from-top-4 ${notification.type === 'error' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}`}>
+                      {notification.type === 'error' ? <i data-lucide="alert-circle" className="w-4 h-4"></i> : <i data-lucide="check-circle" className="w-4 h-4"></i>}
+                      {notification.msg}
+                  </div>
+              )}
+
+              {/* 品牌形象 Banner */}
+              <div className="relative h-40 bg-slate-900 overflow-hidden">
+                <div className="absolute inset-0 bg-slate-900 opacity-95 z-10"></div>
+                <img 
+                  src="https://i.postimg.cc/N0YrWM0P/jian-guo-fang.png" 
+                  alt="養生堅果鋪" 
+                  className="w-full h-full object-cover mix-blend-overlay opacity-30"
+                />
+                <div className="absolute inset-0 flex flex-col justify-center items-center p-4 z-20 text-center">
+                  <div className="bg-purple-900/50 backdrop-blur-sm px-4 py-1 rounded-full border border-purple-500/30 mb-2">
+                    <span className="text-purple-200 font-bold tracking-widest text-[10px] uppercase flex items-center gap-2">
+                      <i data-lucide="trending-up" className="w-3 h-3"></i> 內部快速建單系統 v2026.04.18
+                    </span>
+                  </div>
+                  <h1 className="text-2xl font-bold text-white tracking-wide shadow-sm font-serif">養生堅果鋪</h1>
+                </div>
+              </div>
+
+              {/* 重要公告區塊 (內部提醒 + 可編輯功能) */}
+              <div className="bg-purple-50 border-b border-purple-100 p-3 relative z-10">
+                <div className="max-w-3xl mx-auto">
+                  {isEditingAnnouncement ? (
+                    <div className="flex flex-col gap-2">
+                      <div className="flex justify-between items-center px-1">
+                        <span className="text-xs font-bold text-purple-700 flex items-center gap-1"><i data-lucide="edit-3" className="w-3 h-3"></i> 編輯內部公告內容</span>
+                      </div>
+                      <textarea
+                        className="w-full text-sm p-3 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none bg-white min-h-[100px] text-slate-700 leading-relaxed"
+                        value={announcementText}
+                        onChange={(e) => setAnnouncementText(e.target.value)}
+                        placeholder="請輸入要在報表底部顯示的公告內容..."
+                      />
+                      <div className="flex justify-end">
+                        <button 
+                          onClick={() => setIsEditingAnnouncement(false)} 
+                          className="px-4 py-1.5 text-xs font-bold bg-purple-600 text-white rounded-md hover:bg-purple-700 shadow-sm transition-colors"
+                        >
+                          儲存並預覽
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-3 text-purple-800">
+                      <i data-lucide="megaphone" className="w-5 h-5 shrink-0 mt-0.5 animate-pulse"></i>
+                      <div className="text-xs sm:text-sm whitespace-pre-line leading-relaxed flex-1">
+                        {announcementText ? announcementText : <span className="text-purple-400 italic">（目前無公告內容，點擊右側按鈕新增）</span>}
+                      </div>
+                      <button 
+                        onClick={() => setIsEditingAnnouncement(true)}
+                        className="p-1.5 text-purple-500 hover:text-purple-700 hover:bg-purple-100 rounded-md transition-colors shrink-0 flex flex-col items-center gap-0.5"
+                        title="編輯公告"
+                      >
+                        <i data-lucide="edit-3" className="w-4 h-4"></i>
+                        <span className="text-[10px] font-bold">編輯</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 匯入報表 Modal */}
+              {showImportModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                  <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-5 relative">
+                    <h3 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+                      <i data-lucide="clipboard-type" className="w-5 h-5 text-purple-600"></i>
+                      自動解析匯入報表
+                    </h3>
+                    <p className="text-xs text-slate-500 mb-3">請將先前的文字報表直接貼在下方（只要有「品名 x 數量」的格式即可自動辨識）：</p>
+                    <textarea 
+                      className="w-full h-40 p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 mb-3"
+                      placeholder={`範例：\n腰果 x 40\n核桃 x 30 (利潤:$4500)\n...`}
+                      value={importText}
+                      onChange={(e) => setImportText(e.target.value)}
+                    />
+                    <div className="flex justify-end gap-2">
+                      <button 
+                        onClick={() => { setShowImportModal(false); setImportText(''); }}
+                        className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200"
+                      >
+                        取消
+                      </button>
+                      <button 
+                        onClick={handleImport}
+                        className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 shadow-sm"
+                      >
+                        解析並帶入
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 清空確認 Modal */}
+              {showClearConfirm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                  <div className="bg-white rounded-xl shadow-2xl max-w-xs w-full p-5 relative text-center">
+                    <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                      <i data-lucide="alert-circle" className="h-6 w-6 text-red-600"></i>
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-800 mb-2">確定要清空嗎？</h3>
+                    <p className="text-xs text-slate-500 mb-6">這將會清除您目前所有已填寫的數量與您加入的自訂口味。</p>
+                    <div className="flex justify-center gap-2">
+                      <button 
+                        onClick={() => setShowClearConfirm(false)}
+                        className="px-4 py-2 flex-1 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200"
+                      >
+                        取消
+                      </button>
+                      <button 
+                        onClick={confirmClearCart}
+                        className="px-4 py-2 flex-1 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 shadow-sm"
+                      >
+                        確定清空
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 自訂口味組合 Modal */}
+              {showMixModal && mixBaseProduct && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                  <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full p-5 relative">
+                    <h3 className="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
+                      <i data-lucide="edit-3" className="w-5 h-5 text-purple-600"></i>
+                      自訂口味組合
+                    </h3>
+                    <p className="text-xs text-slate-500 mb-4">請點選設定【{mixBaseProduct.name}】的配料：</p>
+                    
+                    <div className="grid grid-cols-3 gap-2 mb-4">
+                      {MIX_INGREDIENTS.map(ing => {
+                        const isSelected = selectedIngredients.includes(ing);
+                        return (
+                          <button
+                            key={ing}
+                            onClick={() => setSelectedIngredients(prev => prev.includes(ing) ? prev.filter(i => i !== ing) : [...prev, ing])}
+                            className={`py-2 px-1 text-sm font-bold rounded-lg border transition-all active:scale-95 ${
+                              isSelected ? 'bg-purple-100 border-purple-500 text-purple-700 shadow-inner' : 'bg-white border-slate-200 text-slate-600 hover:border-purple-300 shadow-sm'
+                            }`}
+                          >
+                            {ing}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    
+                    <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 mb-4 min-h-[44px] text-sm text-slate-700 flex items-center flex-wrap gap-1.5">
+                      {selectedIngredients.length > 0 ? selectedIngredients.map(ing => (
+                        <span key={ing} className="bg-white px-2 py-1 rounded border border-purple-200 text-purple-700 text-xs font-bold shadow-sm">{ing}</span>
+                      )) : <span className="text-slate-400 text-xs px-1">請點擊上方按鈕選擇配料...</span>}
+                    </div>
+
+                    <div className="flex justify-end gap-2">
+                      <button 
+                        onClick={() => { setShowMixModal(false); setSelectedIngredients([]); setMixBaseProduct(null); }}
+                        className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200"
+                      >
+                        取消
+                      </button>
+                      <button 
+                        onClick={handleAddCustomMix}
+                        className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 shadow-sm flex items-center gap-1"
+                      >
+                        <i data-lucide="plus" className="w-4 h-4"></i> 確認新增
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 懸浮控制列 */}
+              <div className={`sticky top-0 z-20 transition-all duration-300 ${isScrolled ? 'bg-slate-100/95 backdrop-blur-md shadow-md pt-2 pb-2 border-b border-slate-200' : 'bg-transparent pt-3 pb-2'}`}>
+                <div className="max-w-3xl mx-auto px-2 sm:px-4">
+                  <div className={`transition-all duration-300 ${isScrolled ? '' : 'bg-white rounded-xl p-2 shadow-sm border border-slate-200'}`}>
+                    <div className="flex gap-2 mb-2">
+                      <div className="relative flex-1">
+                        <i data-lucide="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></i>
+                        <input 
+                          type="text" 
+                          placeholder="搜尋品名..." 
+                          className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500/50 focus:bg-white transition-all"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                      </div>
+                      <button 
+                        onClick={() => setShowImportModal(true)}
+                        className="px-3 py-2 bg-purple-50 text-purple-700 rounded-lg border border-purple-100 hover:bg-purple-100 transition-colors flex items-center gap-1 text-sm font-medium"
+                      >
+                        <i data-lucide="clipboard-type" className="w-4 h-4"></i> <span className="hidden sm:inline">匯入</span>
+                      </button>
+                      {cartSummary.totalQty > 0 && (
+                        <button 
+                          onClick={clearCart}
+                          className="px-3 py-2 bg-red-50 text-red-600 rounded-lg border border-red-100 hover:bg-red-100 transition-colors flex items-center gap-1 text-sm font-medium shrink-0"
+                        >
+                          <i data-lucide="trash-2" className="w-4 h-4"></i> 清空
+                        </button>
+                      )}
+                    </div>
+                    
+                    <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar items-center">
+                      <div className="text-slate-400 pr-1 border-r border-slate-200 shrink-0">
+                         <i data-lucide="filter" className="w-3.5 h-3.5"></i>
+                      </div>
+                      {categories.map(cat => (
+                        <button
+                          key={cat}
+                          onClick={() => setFilterCategory(cat)}
+                          className={`px-3 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-colors border ${
+                            filterCategory === cat 
+                              ? 'bg-slate-800 text-white border-slate-800' 
+                              : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
+                          }`}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <main className="max-w-3xl mx-auto p-2 sm:p-4 pt-1">
+                <div className="hidden sm:flex px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200 mb-2">
+                   <div className="w-14">圖片</div>
+                   <div className="flex-1">商品資訊</div>
+                   <div className="w-24 text-right">成本/售價</div>
+                   <div className="w-20 text-right text-green-600">單件淨利</div>
+                   <div className="w-32 text-center">輸入數量</div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  {rowsToRender.map(row => {
+                    const quantity = cart[row.itemKey] || 0;
+                    const profit = row.product.price - row.product.cost; 
+                    
+                    return (
+                      <div 
+                        key={row.itemKey} 
+                        className={`flex items-center gap-3 p-2.5 sm:p-3 bg-white rounded-lg border transition-all ${
+                          quantity > 0 
+                            ? 'border-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.15)] ring-1 ring-purple-100' 
+                            : 'border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-md overflow-hidden bg-slate-100 border border-slate-100 relative">
+                           <img src={row.product.image} alt={row.product.name} className="w-full h-full object-cover" />
+                           {quantity > 0 && (
+                             <div className="absolute inset-0 bg-purple-600/10 border-2 border-purple-500 rounded-md pointer-events-none"></div>
+                           )}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-bold text-slate-800 text-sm sm:text-base truncate">{row.product.name}</h3>
+                            {row.isBase && row.product.customizable && (
+                              <button 
+                                onClick={() => { setMixBaseProduct(row.product); setShowMixModal(true); }}
+                                className="px-2 py-0.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded text-[10px] font-bold transition-colors shadow-sm active:scale-95"
+                              >
+                                + 自訂口味
+                              </button>
+                            )}
+                            {!row.isBase && (
+                              <button 
+                                onClick={() => handleRemoveCustomVariant(row.itemKey)}
+                                className="px-1.5 py-0.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded text-[10px] font-bold transition-colors shadow-sm active:scale-95 flex items-center gap-0.5"
+                                title="刪除此組合"
+                              >
+                                <i data-lucide="trash-2" className="w-3 h-3"></i> 刪除
+                              </button>
+                            )}
+                            {quantity > 0 && (
+                              <span className="hidden sm:inline-block text-[10px] font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">
+                                已選 {quantity} 包
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs mt-1 flex items-center gap-2">
+                            <span className="text-slate-500">{row.product.weight}g</span>
+                            {row.note && (
+                              <span className={`truncate border-l border-slate-200 pl-2 ${row.isBase ? 'text-slate-400' : 'text-purple-600 font-bold'}`}>
+                                {!row.isBase && '自選: '}{row.note}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="hidden sm:flex flex-col text-right w-24 shrink-0 text-xs">
+                           <div className="text-slate-500">成: <span className="text-red-600 font-bold">${row.product.cost}</span></div>
+                           <div className="text-slate-400">售: ${row.product.price}</div>
+                        </div>
+                        
+                        <div className="hidden sm:flex w-20 shrink-0 justify-end items-center">
+                           <span className="text-sm font-bold text-green-600 bg-green-50 px-2 py-1 rounded">
+                             +${profit}
+                           </span>
+                        </div>
+
+                        <div className="sm:hidden flex flex-col items-end shrink-0 mr-1 text-xs">
+                           <span className="text-red-600 font-bold leading-tight">${row.product.cost}</span>
+                           <span className="text-slate-400 scale-90 origin-right leading-tight">售${row.product.price}</span>
+                        </div>
+
+                        <div className="flex items-center gap-1 shrink-0 bg-slate-50 p-1 rounded-lg border border-slate-200">
+                          <button 
+                            onClick={() => updateQuantity(row.itemKey, -1)}
+                            className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-md text-slate-500 hover:bg-white hover:shadow-sm hover:text-slate-800 transition-all active:scale-95 disabled:opacity-30"
+                            disabled={quantity === 0}
+                          >
+                            <i data-lucide="minus" className="w-4 h-4"></i>
+                          </button>
+                          
+                          <input 
+                            type="number" 
+                            min="0"
+                            value={quantity === 0 ? '' : quantity}
+                            onChange={(e) => handleInputChange(row.itemKey, e.target.value)}
+                            placeholder="0"
+                            className="w-10 sm:w-12 h-7 sm:h-8 text-center font-bold text-slate-800 bg-white border border-slate-200 rounded-md focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-sm sm:text-base appearance-none m-0"
+                          />
+                          
+                          <button 
+                            onClick={() => updateQuantity(row.itemKey, 1)}
+                            className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-md bg-slate-800 text-white hover:bg-slate-700 shadow-sm transition-all active:scale-95"
+                          >
+                            <i data-lucide="plus" className="w-4 h-4"></i>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </main>
+
+              {/* 底部品牌署名與版本日期 */}
+              <div className="text-center py-6 mt-4 mb-36 border-t border-slate-200">
+                <a 
+                    href="https://www.noah999.com/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-xs text-slate-400 hover:text-purple-600 transition-colors inline-flex items-center justify-center gap-1"
+                >
+                    @NOAHSHOP 諾亞商行 設計製作 版權所有 | 更新日期: 2026/04/18
+                </a>
+              </div>
+
+              {/* 底部浮動結帳區 */}
+              <div className="fixed bottom-0 left-0 right-0 z-30">
+                <div className="absolute bottom-0 w-full h-40 bg-gradient-to-t from-slate-200 via-slate-100/90 to-transparent pointer-events-none" />
+                
+                <div className="relative max-w-3xl mx-auto p-2 sm:p-4 pb-safe">
+                  <div className="bg-slate-900 text-white rounded-xl shadow-2xl p-3 sm:p-4 flex flex-col gap-3 border border-slate-700">
+                    
+                    {cartSummary.discountRate < 1 && (
+                      <div className="bg-green-500/20 border border-green-500/50 text-green-400 text-xs sm:text-sm font-bold text-center py-1.5 rounded-lg -mb-1 flex items-center justify-center gap-2">
+                        <i data-lucide="trending-up" className="w-4 h-4"></i> 採購進貨達標：享有成本 {cartSummary.discountName} 優惠 (省下 ${cartSummary.totalCost - cartSummary.discountedCost})
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-4 gap-2 text-center divide-x divide-slate-700/50">
+                      <div className="flex flex-col justify-center">
+                        <span className="text-slate-400 text-[10px] sm:text-xs mb-0.5">總數量</span>
+                        <span className="text-base sm:text-lg font-bold text-white">{cartSummary.totalQty} <span className="text-xs font-normal text-slate-400">包</span></span>
+                      </div>
+                      <div className="flex flex-col justify-center">
+                        <span className="text-slate-400 text-[10px] sm:text-xs mb-0.5">對外實收</span>
+                        <span className="text-base sm:text-lg font-bold text-amber-400">${cartSummary.totalPrice.toLocaleString()}</span>
+                      </div>
+                      <div className="flex flex-col justify-center">
+                        <span className="text-slate-400 text-[10px] sm:text-xs mb-0.5">總進貨成本</span>
+                        {cartSummary.discountRate < 1 ? (
+                          <div className="flex flex-col items-center leading-tight">
+                            <span className="text-[10px] text-slate-500 line-through">${cartSummary.totalCost.toLocaleString()}</span>
+                            <span className="text-base sm:text-lg font-bold text-red-400">${cartSummary.discountedCost.toLocaleString()}</span>
+                          </div>
+                        ) : (
+                          <span className="text-base sm:text-lg font-bold text-red-400">${cartSummary.totalCost.toLocaleString()}</span>
+                        )}
+                      </div>
+                      <div className="flex flex-col justify-center bg-slate-800/50 rounded-lg py-1">
+                        <span className="text-slate-400 text-[10px] sm:text-xs mb-0.5">實際淨利</span>
+                        {cartSummary.discountRate < 1 ? (
+                          <div className="flex flex-col items-center leading-tight">
+                            <span className="text-[10px] text-slate-500 line-through">${cartSummary.originalProfit.toLocaleString()}</span>
+                            <span className="text-base sm:text-xl font-bold text-green-400">+${cartSummary.discountedProfit.toLocaleString()}</span>
+                          </div>
+                        ) : (
+                          <span className="text-base sm:text-xl font-bold text-green-400">+${cartSummary.originalProfit.toLocaleString()}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-center gap-6 px-2 text-xs sm:text-sm text-slate-300 py-0.5">
+                      <label className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors">
+                        <input 
+                          type="checkbox" 
+                          checked={includeProfit}
+                          onChange={(e) => setIncludeProfit(e.target.checked)}
+                          className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-slate-600 bg-slate-800 text-purple-500 focus:ring-purple-500 focus:ring-offset-slate-900"
+                        />
+                        複製利潤與成本
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors">
+                        <input 
+                          type="checkbox" 
+                          checked={includeAnnouncement}
+                          onChange={(e) => setIncludeAnnouncement(e.target.checked)}
+                          className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-slate-600 bg-slate-800 text-purple-500 focus:ring-purple-500 focus:ring-offset-slate-900"
+                        />
+                        複製公告
+                      </label>
+                    </div>
+
+                    <button
+                      onClick={copyToClipboard}
+                      disabled={cartSummary.totalQty === 0}
+                      className={`w-full py-3 sm:py-3.5 rounded-lg font-bold text-sm sm:text-base flex items-center justify-center gap-2 transition-all ${
+                        cartSummary.totalQty > 0 
+                          ? 'bg-purple-600 text-white hover:bg-purple-500 active:scale-[0.98] shadow-lg shadow-purple-500/25' 
+                          : 'bg-slate-800 text-slate-600 cursor-not-allowed'
+                      }`}
+                    >
+                      <i data-lucide="copy" className="w-4 h-4 sm:w-5 sm:h-5"></i>
+                      複製內部報表 (含利潤分析)
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+            </div>
+          );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
