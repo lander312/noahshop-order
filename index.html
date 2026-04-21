@@ -36,31 +36,31 @@
     <script type="text/babel">
         const { useState, useMemo, useEffect } = React;
 
-        // 產品資料庫 (含圖片連結)
+        // 產品資料庫 (已更新為最新圖片連結與詳細資訊)
         const PRODUCTS = [
-            { id: 1, name: '杏仁果', image: 'https://duk.tw/geGAH9.jpg' },
-            { id: 2, name: '腰果', image: 'https://duk.tw/5hVM88.jpg' },
-            { id: 3, name: '南瓜子', image: 'https://duk.tw/MCdXpP.jpg' },
-            { id: 4, name: '核桃', image: 'https://duk.tw/bXGXUh.jpg' },
-            { id: 5, name: '胡桃', image: 'https://duk.tw/MheYV8.jpg' },
-            { id: 6, name: '綜合堅果(小)', image: 'https://duk.tw/H7eqob.jpg' },
-            { id: 7, name: '綜合堅果(大)', image: 'https://duk.tw/zlwlYT.jpg' },
-            { id: 8, name: '松子', image: 'https://duk.tw/ZTnVKD.jpg' },
-            { id: 9, name: '青葡萄乾', image: 'https://duk.tw/TARDjR.jpg' },
-            { id: 10, name: '蔓越莓乾', image: 'https://duk.tw/JLDB61.jpg' },
-            { id: 11, name: '野生藍莓乾', image: 'https://duk.tw/DX9191.jpg' },
-            { id: 12, name: '黑芝麻粉', image: 'https://duk.tw/mwkH0r.jpg' },
-            { id: 13, name: '中東椰棗', image: 'https://duk.tw/2UhsFb.jpg' },
-            { id: 14, name: '夏威夷豆', image: 'https://duk.tw/WVpHiP.jpg' },
-            { id: 15, name: '黑葡萄乾', image: 'https://duk.tw/QOYzfD.jpg' },
-            { id: 16, name: '乳酪絲', image: 'https://duk.tw/i3IiR5.jpg' },
-            { id: 17, name: '甘草橄欖', image: 'https://duk.tw/JoIsAS.jpg' },
-            { id: 18, name: '無花果', image: 'https://duk.tw/fWR4Ab.jpg' },
-            { id: 19, name: '開心果', image: 'https://duk.tw/ucxqkJ.jpg' },
-            { id: 20, name: '紅麴納豆', image: 'https://duk.tw/faxmpn.jpg' },
-            { id: 21, name: '黑豆', image: 'https://duk.tw/LxtkXO.jpg' },
-            { id: 22, name: '梅子', image: 'https://duk.tw/O2M2ud.jpg' },
-            { id: 23, name: '五行豆', image: 'https://duk.tw/tatgXk.jpg' },
+            { id: 1, name: '杏仁果', weight: 240, price: 250, cost: 200, category: '堅果', image: 'https://i.postimg.cc/507KkDfX/message_Image_1769681046821.jpg' },
+            { id: 2, name: '腰果', weight: 220, price: 250, cost: 200, category: '堅果', image: 'https://i.postimg.cc/76stQjqG/message_Image_1769681056140.jpg' },
+            { id: 3, name: '核桃', weight: 220, price: 350, cost: 200, category: '堅果', image: 'https://i.postimg.cc/Qt4YnvjB/message_Image_1769681074884.jpg' },
+            { id: 4, name: '綜合堅果(小)', weight: 220, price: 250, cost: 200, note: '杏仁.腰果.核桃', category: '綜合', image: 'https://i.postimg.cc/76stQjqN/message_Image_1769681094101.jpg', customizable: true },
+            { id: 5, name: '綜合堅果(大)', weight: 340, price: 350, cost: 300, note: '杏仁.腰果.核桃', category: '綜合', image: 'https://i.postimg.cc/ydQpr27j/message_Image_1769681104182.jpg', customizable: true },
+            { id: 6, name: '胡桃', weight: 220, price: 350, cost: 300, category: '堅果', image: 'https://i.postimg.cc/MTP3rgzy/message_Image_1769681084096.jpg' },
+            { id: 7, name: '南瓜子', weight: 255, price: 350, cost: 150, category: '種子', image: 'https://i.postimg.cc/9M8gNsc7/message_Image_1769681065108.jpg' },
+            { id: 8, name: '松子', weight: 150, price: 500, cost: 400, category: '堅果', image: 'https://i.postimg.cc/507KkDf3/message_Image_1769681112114.jpg' },
+            { id: 9, name: '梅子', weight: 150, price: 200, cost: 100, category: '果乾', image: 'https://i.postimg.cc/MHgPzRch/message_Image_1769681240905.jpg' },
+            { id: 10, name: '無花果', weight: 300, price: 350, cost: 230, category: '果乾', image: 'https://i.postimg.cc/fyVq45b1/message_Image_1769681204670.jpg' },
+            { id: 11, name: '開心果', weight: 600, price: 580, cost: 540, category: '堅果', image: 'https://i.postimg.cc/XqtHnFZ1/message_Image_1769681214939.jpg' },
+            { id: 12, name: '中東椰棗', weight: 300, price: 300, cost: 200, category: '果乾', image: 'https://i.postimg.cc/cCvkqTJm/message_Image_1769681154962.jpg' },
+            { id: 13, name: '野生藍莓乾', weight: 240, price: 450, cost: 400, category: '果乾', image: 'https://i.postimg.cc/PJCVGKqb/message_Image_1769681136720.jpg' },
+            { id: 14, name: '蔓越莓乾', weight: 265, price: 450, cost: 200, category: '果乾', image: 'https://i.postimg.cc/Bbj7WNvH/message_Image_1769681129012.jpg' },
+            { id: 15, name: '黑葡萄乾', weight: 300, price: 280, cost: 100, category: '果乾', image: 'https://i.postimg.cc/Gt4g0zpM/message_Image_1769681175609.jpg' },
+            { id: 16, name: '青葡萄乾', weight: 260, price: 250, cost: 100, category: '果乾', image: 'https://i.postimg.cc/d3hNMn0y/message_Image_1769681120719.jpg' },
+            { id: 17, name: '夏威夷豆', weight: 225, price: 350, cost: 300, category: '堅果', image: 'https://i.postimg.cc/0jzXgZNZ/message_Image_1769681166680.jpg' },
+            { id: 18, name: '紅麴納豆', weight: 330, price: 300, cost: 100, category: '零嘴', image: 'https://i.postimg.cc/d3gHJdkK/message_Image_1769681224115.jpg' },
+            { id: 19, name: '黑豆', weight: 300, price: 250, cost: 100, category: '豆類', image: 'https://i.postimg.cc/zv4tqWLM/message_Image_1769681232675.jpg' },
+            { id: 20, name: '五行豆', weight: 300, price: 250, cost: 100, note: '黃豆/黑豆/南瓜子/枸杞/葡萄乾', category: '綜合', image: 'https://i.postimg.cc/KjCqmLkh/message_Image_1769681251833.jpg' },
+            { id: 21, name: '甘草橄欖', weight: 300, price: 250, cost: 100, category: '果乾', image: 'https://i.postimg.cc/6q8bszQD/message_Image_1769681196159.jpg' },
+            { id: 22, name: '乳酪絲', weight: 150, price: 350, cost: 300, category: '零嘴', image: 'https://i.postimg.cc/Xqr1MxvP/message_Image_1769681185959.jpg' },
+            { id: 23, name: '黑芝麻粉', weight: 300, price: 200, cost: 100, category: '粉類', image: 'https://i.postimg.cc/3NkfM9wZ/message_Image_1769681145513.jpg' }
         ];
 
         const App = () => {
