@@ -87,101 +87,124 @@
     <script type="text/babel">
         const { useState, useMemo, useEffect } = React;
 
-        // 產品資料庫 (v2026.11.27)
+        // 產品資料庫 (v2026.11.27：含對外價格表專用營養特色說明)
         const RAW_PRODUCTS = [
           { 
             id: 1, name: '杏仁果', weight: 240, price: 250, cost: 200, category: '堅果',
-            image: 'https://i.postimg.cc/507KkDfX/message_Image_1769681046821.jpg'
+            image: 'https://i.postimg.cc/507KkDfX/message_Image_1769681046821.jpg',
+            benefit: '含有維生素E，具抗氧化作用'
           },
           { 
             id: 2, name: '腰果', weight: 220, price: 250, cost: 200, category: '堅果',
-            image: 'https://i.postimg.cc/76stQjqG/message_Image_1769681056140.jpg'
+            image: 'https://i.postimg.cc/76stQjqG/message_Image_1769681056140.jpg',
+            benefit: '補充鐵質與鎂，增強體力'
           },
           { 
             id: 3, name: '核桃', weight: 220, price: 350, cost: 200, category: '堅果',
-            image: 'https://i.postimg.cc/Qt4YnvjB/message_Image_1769681074884.jpg'
+            image: 'https://i.postimg.cc/Qt4YnvjB/message_Image_1769681074884.jpg',
+            benefit: '精選Omega-3來源，補充思緒能量'
           },
           { 
             id: 4, name: '綜合堅果(小)', weight: 220, price: 250, cost: 200, note: '杏仁.腰果.核桃', category: '綜合',
             image: 'https://i.postimg.cc/76stQjqN/message_Image_1769681094101.jpg',
+            benefit: '多元營養攝取，均衡飲食首選',
             customizable: true
           },
           { 
             id: 5, name: '綜合堅果(大)', weight: 340, price: 350, cost: 300, note: '杏仁.腰果.核桃', category: '綜合',
             image: 'https://i.postimg.cc/ydQpr27j/message_Image_1769681104182.jpg',
+            benefit: '大份量滿足，全家人的營養補給',
             customizable: true
           },
           { 
             id: 6, name: '胡桃', weight: 220, price: 350, cost: 300, category: '堅果',
-            image: 'https://i.postimg.cc/MTP3rgzy/message_Image_1769681084096.jpg'
+            image: 'https://i.postimg.cc/MTP3rgzy/message_Image_1769681084096.jpg',
+            benefit: '含多酚物質，促進新陳代謝'
           },
           { 
             id: 7, name: '南瓜子', weight: 255, price: 350, cost: 150, category: '種子',
-            image: 'https://i.postimg.cc/9M8gNsc7/message_Image_1769681065108.jpg'
+            image: 'https://i.postimg.cc/9M8gNsc7/message_Image_1769681065108.jpg',
+            benefit: '含有鋅元素，調節生理機能'
           },
           { 
             id: 8, name: '松子', weight: 150, price: 500, cost: 400, category: '堅果',
-            image: 'https://i.postimg.cc/507KkDf3/message_Image_1769681112114.jpg'
+            image: 'https://i.postimg.cc/507KkDf3/message_Image_1769681112114.jpg',
+            benefit: '含不飽和脂肪酸，滋補強身'
           },
           { 
             id: 9, name: '梅子', weight: 150, price: 200, cost: 100, category: '果乾',
-            image: 'https://i.postimg.cc/MHgPzRch/message_Image_1769681240905.jpg'
+            image: 'https://i.postimg.cc/MHgPzRch/message_Image_1769681240905.jpg',
+            benefit: '幫助消化，開胃解膩'
           },
           { 
             id: 10, name: '無花果', weight: 300, price: 350, cost: 230, category: '果乾', 
-            image: 'https://i.postimg.cc/fyVq45b1/message_Image_1769681204670.jpg'
+            image: 'https://i.postimg.cc/fyVq45b1/message_Image_1769681204670.jpg',
+            benefit: '含膳食纖維，幫助維持消化道機能'
           },
           { 
             id: 11, name: '開心果', weight: 600, price: 580, cost: 540, category: '堅果',
-            image: 'https://i.postimg.cc/XqtHnFZ1/message_Image_1769681214939.jpg'
+            image: 'https://i.postimg.cc/XqtHnFZ1/message_Image_1769681214939.jpg',
+            benefit: '含葉黃素與蛋白質，健康零嘴'
           },
           { 
             id: 12, name: '中東椰棗', weight: 300, price: 300, cost: 200, category: '果乾',
-            image: 'https://i.postimg.cc/cCvkqTJm/message_Image_1769681154962.jpg'
+            image: 'https://i.postimg.cc/cCvkqTJm/message_Image_1769681154962.jpg',
+            benefit: '沙漠能量果實，含豐富礦物質'
           },
           { 
             id: 13, name: '野生藍莓乾', weight: 240, price: 450, cost: 400, category: '果乾',
-            image: 'https://i.postimg.cc/PJCVGKqb/message_Image_1769681136720.jpg'
+            image: 'https://i.postimg.cc/PJCVGKqb/message_Image_1769681136720.jpg',
+            benefit: '豐富花青素，晶亮有神'
           },
           { 
             id: 14, name: '蔓越莓乾', weight: 265, price: 450, cost: 200, category: '果乾',
-            image: 'https://i.postimg.cc/Bbj7WNvH/message_Image_1769681129012.jpg'
+            image: 'https://i.postimg.cc/Bbj7WNvH/message_Image_1769681129012.jpg',
+            benefit: '改變細菌叢生態，養顏美容'
           },
           { 
             id: 15, name: '黑葡萄乾', weight: 300, price: 280, cost: 100, category: '果乾',
-            image: 'https://i.postimg.cc/Gt4g0zpM/message_Image_1769681175609.jpg'
+            image: 'https://i.postimg.cc/Gt4g0zpM/message_Image_1769681175609.jpg',
+            benefit: '含有鐵質，女性保養好朋友'
           },
           { 
             id: 16, name: '青葡萄乾', weight: 260, price: 250, cost: 100, category: '果乾',
-            image: 'https://i.postimg.cc/d3hNMn0y/message_Image_1769681120719.jpg'
+            image: 'https://i.postimg.cc/d3hNMn0y/message_Image_1769681120719.jpg',
+            benefit: '天然果糖來源，運動後補充能量'
           },
           { 
             id: 17, name: '夏威夷豆', weight: 225, price: 350, cost: 300, category: '堅果',
-            image: 'https://i.postimg.cc/0jzXgZNZ/message_Image_1769681166680.jpg'
+            image: 'https://i.postimg.cc/0jzXgZNZ/message_Image_1769681166680.jpg',
+            benefit: '獨特奶香，攝取植物性好脂肪'
           },
           { 
             id: 18, name: '紅麴納豆', weight: 330, price: 300, cost: 100, category: '零嘴',
-            image: 'https://i.postimg.cc/d3gHJdkK/message_Image_1769681224115.jpg'
+            image: 'https://i.postimg.cc/d3gHJdkK/message_Image_1769681224115.jpg',
+            benefit: '納豆激酶與紅麴，促進新陳代謝'
           },
           { 
             id: 19, name: '黑豆', weight: 300, price: 250, cost: 100, category: '豆類',
-            image: 'https://i.postimg.cc/zv4tqWLM/message_Image_1769681232675.jpg'
+            image: 'https://i.postimg.cc/zv4tqWLM/message_Image_1769681232675.jpg',
+            benefit: '優質植物性蛋白，營養補給'
           },
           { 
             id: 20, name: '五行豆', weight: 300, price: 250, cost: 100, note: '黃豆/黑豆/南瓜子/枸杞/葡萄乾', category: '綜合',
-            image: 'https://i.postimg.cc/KjCqmLkh/message_Image_1769681251833.jpg'
+            image: 'https://i.postimg.cc/KjCqmLkh/message_Image_1769681251833.jpg',
+            benefit: '五色食材均衡攝取，調節生理機能'
           },
           { 
             id: 21, name: '甘草橄欖', weight: 300, price: 250, cost: 100, category: '果乾',
-            image: 'https://i.postimg.cc/6q8bszQD/message_Image_1769681196159.jpg'
+            image: 'https://i.postimg.cc/6q8bszQD/message_Image_1769681196159.jpg',
+            benefit: '傳統古法製作，生津解渴'
           },
           { 
             id: 22, name: '乳酪絲', weight: 150, price: 350, cost: 300, category: '零嘴',
-            image: 'https://i.postimg.cc/Xqr1MxvP/message_Image_1769681185959.jpg'
+            image: 'https://i.postimg.cc/Xqr1MxvP/message_Image_1769681185959.jpg',
+            benefit: '濃縮乳製品營養，鈣質來源'
           },
           { 
             id: 23, name: '黑芝麻粉', weight: 300, price: 200, cost: 100, category: '粉類',
-            image: 'https://i.postimg.cc/3NkfM9wZ/message_Image_1769681145513.jpg'
+            image: 'https://i.postimg.cc/3NkfM9wZ/message_Image_1769681145513.jpg',
+            benefit: '含有鈣質與膳食纖維，健康維持'
           },
         ];
 
@@ -208,8 +231,6 @@
           const [customVariants, setCustomVariants] = useState([]);
           
           const [showClearConfirm, setShowClearConfirm] = useState(false);
-
-          // 新增：對外專用橫式 A4 價格表預覽視窗狀態
           const [showPriceListModal, setShowPriceListModal] = useState(false);
 
           const MIX_INGREDIENTS = ['杏仁果', '腰果', '核桃', '胡桃', '南瓜子', '松子', '開心果', '夏威夷豆', '黑豆', '黃豆'];
@@ -770,7 +791,7 @@
                             onChange={(e) => setSearchTerm(e.target.value)}
                           />
                         </div>
-                        {/* 新增：對外專用橫式 A4 價格表按鈕 */}
+                        {/* 對外專用橫式 A4 價格表按鈕 */}
                         <button 
                           onClick={() => setShowPriceListModal(true)}
                           className="px-3 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors flex items-center gap-1.5 text-sm font-bold shadow-sm shrink-0 active:scale-95"
@@ -1027,7 +1048,7 @@
               </div>
 
               {/* ================================================================= */}
-              {/* 對外專用：橫式 A4 附圖價格表 (預覽 Modal + 專屬列印/PDF 輸出區) */}
+              {/* 對外專用：橫式 A4 附圖價格表 (含綠色營養特色說明與內容標示) */}
               {/* ================================================================= */}
               {showPriceListModal && (
                 <div className="print-only-container fixed inset-0 z-50 bg-slate-900/85 backdrop-blur-sm overflow-y-auto p-3 sm:p-6">
@@ -1039,7 +1060,7 @@
                         對外專用價格表預覽（橫式 A4・共 {priceListPages.length} 頁）
                       </h2>
                       <p className="text-xs text-slate-300 mt-0.5">
-                        已自動隱藏所有成本與利潤。點擊「下載 PDF」後，在列印視窗將目的地選為「另存為 PDF」即可保存高畫質 3 頁橫式 A4。
+                        已自動隱藏所有成本與利潤，並附上各品項營養特色說明。點擊「下載 PDF」後，於列印視窗將目的地選為「另存為 PDF」即可。
                       </p>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
@@ -1075,7 +1096,7 @@
                         className="a4-landscape-page w-full max-w-[297mm] min-h-[209mm] bg-white text-slate-800 rounded-xl shadow-2xl p-6 sm:p-8 flex flex-col justify-between border border-slate-200"
                       >
                         {/* 頁首 */}
-                        <div className="flex items-end justify-between border-b-2 border-amber-500 pb-3 mb-4">
+                        <div className="flex items-end justify-between border-b-2 border-amber-500 pb-2.5 mb-3.5">
                           <div className="flex items-baseline gap-3">
                             <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-wide">
                               養生堅果鋪
@@ -1091,14 +1112,14 @@
                         </div>
 
                         {/* 4 欄 x 2 列商品網格 (每頁 8 格，寬敞不擁擠) */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 flex-1 content-start">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 flex-1 content-start">
                           {pageItems.map(product => (
                             <div
                               key={product.id}
-                              className="border border-stone-200 rounded-xl overflow-hidden bg-stone-50/40 flex flex-col justify-between shadow-sm"
+                              className="border border-stone-200 rounded-xl overflow-hidden bg-white flex flex-col justify-between shadow-sm"
                             >
                               {/* 商品照片 */}
-                              <div className="relative h-36 bg-stone-100 overflow-hidden">
+                              <div className="relative h-32 bg-stone-100 overflow-hidden shrink-0">
                                 <img
                                   src={product.image}
                                   alt={product.name}
@@ -1107,25 +1128,28 @@
                                 <span className="absolute top-2 left-2 bg-stone-900/75 text-white text-[11px] font-bold px-2 py-0.5 rounded-md">
                                   {product.category}
                                 </span>
-                                <span className="absolute bottom-2 right-2 bg-white/90 text-stone-700 text-xs font-bold px-2 py-0.5 rounded-md shadow-sm">
+                                <span className="absolute bottom-2 right-2 bg-white/95 text-stone-700 text-xs font-bold px-2 py-0.5 rounded-md shadow-sm">
                                   {product.weight}g
                                 </span>
                               </div>
-                              {/* 商品文字與售價 */}
-                              <div className="p-3 flex flex-col justify-between flex-1 bg-white">
+                              {/* 商品文字、特色說明與售價 */}
+                              <div className="p-2.5 flex flex-col justify-between flex-1 bg-white">
                                 <div>
                                   <h3 className="text-lg font-extrabold text-stone-900 leading-snug">
                                     {product.name}
                                   </h3>
-                                  {product.note ? (
-                                    <p className="text-xs text-stone-500 mt-0.5 line-clamp-1">
-                                      {product.note}
+                                  {product.note && (
+                                    <p className="text-xs text-stone-500 mt-1 leading-tight">
+                                      內容：{product.note}
                                     </p>
-                                  ) : (
-                                    <p className="text-xs text-stone-400 mt-0.5">嚴選新鮮食材</p>
+                                  )}
+                                  {product.benefit && (
+                                    <p className="text-xs font-medium text-emerald-700 mt-1 leading-snug">
+                                      ✦ {product.benefit}
+                                    </p>
                                   )}
                                 </div>
-                                <div className="mt-2 pt-2 border-t border-stone-100 flex items-baseline justify-between">
+                                <div className="mt-2 pt-1.5 border-t border-stone-100 flex items-baseline justify-between">
                                   <span className="text-xs font-bold text-stone-400">建議售價</span>
                                   <span className="text-2xl font-black text-amber-600">
                                     ${product.price}
@@ -1137,7 +1161,7 @@
 
                           {/* 最後一頁第 8 格補上「公告與保存建議卡片」，讓版面完美平衡 */}
                           {pageIndex === priceListPages.length - 1 && (
-                            <div className="border-2 border-amber-300 rounded-xl bg-amber-50/70 p-4 flex flex-col justify-between">
+                            <div className="border-2 border-amber-300 rounded-xl bg-amber-50/70 p-3.5 flex flex-col justify-between">
                               <div>
                                 <div className="text-sm font-extrabold text-amber-800 border-b border-amber-200 pb-1.5 mb-2">
                                   📢 訂購須知與公告
@@ -1156,7 +1180,7 @@
                         </div>
 
                         {/* 頁尾 */}
-                        <div className="mt-4 pt-2 border-t border-stone-200 flex items-center justify-between text-xs text-stone-400">
+                        <div className="mt-3 pt-2 border-t border-stone-200 flex items-center justify-between text-xs text-stone-400">
                           <span>@NOAHSHOP 諾亞商行 設計製作 版權所有</span>
                           <span>圖片僅供參考，實際重量與包裝以出貨為準</span>
                         </div>
@@ -1175,4 +1199,3 @@
     </script>
 </body>
 </html>
-```eof
