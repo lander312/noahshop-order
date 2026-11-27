@@ -34,19 +34,26 @@
             font-family: 'Microsoft JhengHei', '微軟正黑體', system-ui, -apple-system, sans-serif;
         }
 
-        /* 橫式 A4 列印與 PDF 匯出專用樣式 (極窄邊距 + 嚴格鎖定分頁不溢出) */
+        /* 橫式 A4 列印與 PDF 匯出專用樣式 (5mm 極窄邊距 + 195mm 安全高度，徹底杜絕頁尾掉頁) */
         @page {
             size: A4 landscape;
-            margin: 0;
+            margin: 5mm;
         }
         @media print {
             html, body {
                 background-color: #ffffff !important;
                 margin: 0 !important;
                 padding: 0 !important;
-                width: 297mm !important;
+                width: 100% !important;
+                height: auto !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+            }
+            .print-root {
+                min-height: 0 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                background: #ffffff !important;
             }
             .no-print {
                 display: none !important;
@@ -54,7 +61,7 @@
             .print-only-container {
                 display: block !important;
                 position: static !important;
-                background: white !important;
+                background: #ffffff !important;
                 padding: 0 !important;
                 margin: 0 !important;
                 overflow: visible !important;
@@ -66,11 +73,11 @@
                 padding: 0 !important;
             }
             .a4-landscape-page {
-                width: 297mm !important;
-                height: 208mm !important;
+                width: 100% !important;
+                height: 195mm !important;
                 min-height: 0 !important;
                 max-width: none !important;
-                padding: 5mm 6mm !important;
+                padding: 0 !important;
                 margin: 0 !important;
                 overflow: hidden !important;
                 box-shadow: none !important;
@@ -567,12 +574,12 @@
 <script src="https://cdn.tailwindcss.com"><\/script>
 <style>
   body { font-family: 'Microsoft JhengHei', '微軟正黑體', sans-serif; background: #e2e8f0; margin: 0; padding: 20px; }
-  .a4-landscape-page { width: 297mm; height: 208mm; background: white; margin: 0 auto 24px auto; padding: 5mm 6mm; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border-radius: 8px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
-  @page { size: A4 landscape; margin: 0; }
+  .a4-landscape-page { width: 297mm; height: 195mm; background: white; margin: 0 auto 24px auto; padding: 5mm; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border-radius: 8px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
+  @page { size: A4 landscape; margin: 5mm; }
   @media print {
-    html, body { background: white !important; padding: 0 !important; margin: 0 !important; width: 297mm !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    html, body { background: white !important; padding: 0 !important; margin: 0 !important; width: 100% !important; height: auto !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     .toolbar { display: none !important; }
-    .a4-landscape-page { width: 297mm !important; height: 208mm !important; padding: 5mm 6mm !important; margin: 0 !important; overflow: hidden !important; box-shadow: none !important; border: none !important; border-radius: 0 !important; page-break-after: always !important; break-after: page !important; page-break-inside: avoid !important; break-inside: avoid !important; }
+    .a4-landscape-page { width: 100% !important; height: 195mm !important; padding: 0 !important; margin: 0 !important; overflow: hidden !important; box-shadow: none !important; border: none !important; border-radius: 0 !important; page-break-after: always !important; break-after: page !important; page-break-inside: avoid !important; break-inside: avoid !important; }
     .a4-landscape-page:last-child { page-break-after: auto !important; break-after: auto !important; }
   }
 </style>
@@ -605,7 +612,7 @@
           };
 
           return (
-            <div className="min-h-screen bg-slate-100 text-slate-800 font-sans pb-40">
+            <div className="print-root min-h-screen bg-slate-100 text-slate-800 font-sans pb-40">
               
               {/* Notification */}
               {notification && (
@@ -1060,7 +1067,7 @@
               </div>
 
               {/* ================================================================= */}
-              {/* 對外專用：橫式 A4 附圖價格表 (極窄邊距 + 完美 3 頁不跑版) */}
+              {/* 對外專用：橫式 A4 附圖價格表 (5mm 窄邊距 + 195mm 鎖定 3 頁不掉頁) */}
               {/* ================================================================= */}
               {showPriceListModal && (
                 <div className="print-only-container fixed inset-0 z-50 bg-slate-900/85 backdrop-blur-sm overflow-y-auto p-3 sm:p-6">
@@ -1072,7 +1079,7 @@
                         對外專用價格表預覽（橫式 A4・共 {priceListPages.length} 頁）
                       </h2>
                       <p className="text-xs text-slate-300 mt-0.5">
-                        已調整為極窄邊距並鎖定單頁高度。點擊「下載 PDF」後，於列印視窗將目的地選為「另存為 PDF」、邊界選「無」即可。
+                        已鎖定單頁安全高度與 5mm 窄邊距，確保 3 頁絕不掉頁。點擊「下載 PDF」後將目的地選為「另存為 PDF」即可。
                       </p>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
@@ -1105,10 +1112,10 @@
                     {priceListPages.map((pageItems, pageIndex) => (
                       <div
                         key={pageIndex}
-                        className="a4-landscape-page w-full max-w-[297mm] h-[208mm] bg-white text-slate-800 rounded-xl shadow-2xl p-4 sm:p-5 flex flex-col justify-between border border-slate-200 overflow-hidden"
+                        className="a4-landscape-page w-full max-w-[297mm] h-[195mm] bg-white text-slate-800 rounded-xl shadow-2xl p-4 sm:p-5 flex flex-col justify-between border border-slate-200 overflow-hidden"
                       >
                         {/* 頁首 */}
-                        <div className="flex items-end justify-between border-b-2 border-amber-500 pb-2 mb-3 shrink-0">
+                        <div className="flex items-end justify-between border-b-2 border-amber-500 pb-1.5 mb-2.5 shrink-0">
                           <div className="flex items-baseline gap-3">
                             <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-wide">
                               養生堅果鋪
@@ -1123,7 +1130,7 @@
                           </div>
                         </div>
 
-                        {/* 4 欄 x 2 列商品網格 (自動撐滿高度，不留多餘空白) */}
+                        {/* 4 欄 x 2 列商品網格 */}
                         <div className="grid grid-cols-2 sm:grid-cols-4 grid-rows-2 gap-3 flex-1 min-h-0">
                           {pageItems.map(product => (
                             <div
@@ -1131,7 +1138,7 @@
                               className="border border-stone-200 rounded-xl overflow-hidden bg-white flex flex-col justify-between shadow-sm h-full"
                             >
                               {/* 商品照片 */}
-                              <div className="relative h-36 bg-stone-100 overflow-hidden shrink-0">
+                              <div className="relative h-32 bg-stone-100 overflow-hidden shrink-0">
                                 <img
                                   src={product.image}
                                   alt={product.name}
@@ -1171,18 +1178,18 @@
                             </div>
                           ))}
 
-                          {/* 最後一頁第 8 格補上「公告與保存建議卡片」，讓版面完美平衡 */}
+                          {/* 最後一頁第 8 格補上「公告與保存建議卡片」 */}
                           {pageIndex === priceListPages.length - 1 && (
-                            <div className="border-2 border-amber-300 rounded-xl bg-amber-50/70 p-3.5 flex flex-col justify-between h-full">
+                            <div className="border-2 border-amber-300 rounded-xl bg-amber-50/70 p-3 flex flex-col justify-between h-full">
                               <div>
-                                <div className="text-sm font-extrabold text-amber-800 border-b border-amber-200 pb-1.5 mb-2">
+                                <div className="text-sm font-extrabold text-amber-800 border-b border-amber-200 pb-1 mb-1.5">
                                   📢 訂購須知與公告
                                 </div>
                                 <div className="text-xs text-stone-700 whitespace-pre-line leading-relaxed mb-2">
                                   {announcementText}
                                 </div>
                               </div>
-                              <div className="bg-white/90 rounded-lg p-2.5 border border-amber-200 text-xs text-stone-700 space-y-1">
+                              <div className="bg-white/90 rounded-lg p-2 border border-amber-200 text-xs text-stone-700 space-y-0.5">
                                 <div className="font-bold text-amber-800">📦 保存建議（避免陽光直射與潮濕）</div>
                                 <div>・常溫保存：約 40 天</div>
                                 <div>・冷凍保存：約 1 年</div>
